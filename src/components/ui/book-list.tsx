@@ -88,50 +88,39 @@ export default function BookList({ books }: BookListProps) {
     });
   }
 
-  if (books.length === 0) {
-    return (
-      <div className="text-center text-slate-500 py-12 bg-white rounded-lg border border-slate-200">
-        No books yet. Create one to get started!
-      </div>
-    );
+  if (!books.length) {
+    return <div>No books yet. Create one to get started!</div>;
   }
 
   return (
-    <div className="space-y-4">
+    <VStack gap={4} align="stretch">
       {books.map((book) => (
-        <div
-          key={book.id}
-          className="bg-white rounded-lg border border-slate-200 p-6 hover:shadow-md transition-shadow"
-        >
-          <div className="flex items-start justify-between gap-4 mb-3">
-            <div className="flex-1">
-              <VStack gap={2}>
-                <h2>{book.name}</h2>
+        <div key={book.id}>
+          <VStack gap={4} align="stretch">
+            <VStack align="start" gap={2}>
+              <h2>{book.name}</h2>
 
-                <p>{book.description}</p>
-              </VStack>
-            </div>
+              <p>{book.description}</p>
+            </VStack>
 
-            <div>
-              <HStack gap={4}>
-                <UpdateDialog
-                  book={book}
-                  isUpdating={updating}
-                  onSubmit={(id, name, description) =>
-                    handleUpdateBook({ id, name, description })
-                  }
-                />
+            <HStack gap={4}>
+              <UpdateDialog
+                book={book}
+                isUpdating={updating}
+                onSubmit={(id, name, description) =>
+                  handleUpdateBook({ id, name, description })
+                }
+              />
 
-                <DeleteDialog
-                  book={book}
-                  isDeleting={deleting}
-                  onConfirm={() => handleDeleteBook({ id: book.id })}
-                />
-              </HStack>
-            </div>
-          </div>
+              <DeleteDialog
+                book={book}
+                isDeleting={deleting}
+                onConfirm={() => handleDeleteBook({ id: book.id })}
+              />
+            </HStack>
+          </VStack>
         </div>
       ))}
-    </div>
+    </VStack>
   );
 }
