@@ -16,6 +16,7 @@ import { CREATE_BOOK, GET_BOOKS } from "@/data-service";
 
 function CreateBookDialog() {
   const [name, setName] = useState("");
+  const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
 
   function displayToast({
@@ -34,6 +35,12 @@ function CreateBookDialog() {
     });
   }
 
+  function handleReset() {
+    setName("");
+    setDescription("");
+    setOpen(false);
+  }
+
   const [createBook, { loading: creating }] = useMutation(CREATE_BOOK, {
     refetchQueries: [{ query: GET_BOOKS }],
 
@@ -43,10 +50,29 @@ function CreateBookDialog() {
         type: "success",
         title: "Success",
       });
+      handleReset();
     },
   });
 
-  async function handleCreateBook() {
+  async function handleCreateBook(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (name.length < 3) {
+      return displayToast({
+        message: "Name must be at least 3 characters long",
+        type: "error",
+        title: "Error",
+      });
+    }
+
+    if (description.length < 10) {
+      return displayToast({
+        message: "Description must be at least 10 characters long",
+        type: "error",
+        title: "Error",
+      });
+    }
+
     createBook({
       variables: { name, description },
       onError(error) {
@@ -56,7 +82,13 @@ function CreateBookDialog() {
   }
 
   return (
-    <Dialog.Root size="cover" placement="center" motionPreset="slide-in-bottom">
+    <Dialog.Root
+      open={open}
+      onOpenChange={(d) => setOpen(d.open)}
+      size="cover"
+      placement="center"
+      motionPreset="slide-in-bottom"
+    >
       <Dialog.Trigger asChild>
         <Button variant="outline" size="sm">
           Create Book
@@ -76,15 +108,19 @@ function CreateBookDialog() {
               </Dialog.CloseTrigger>
             </Dialog.Header>
 
-            <Dialog.Body>
-              <form>
+            <form onSubmit={handleCreateBook}>
+              <Dialog.Body>
                 <VStack gap={8}>
                   <Field.Root>
                     <Field.Label>Name</Field.Label>
 
                     <Input
+                      required
                       type="text"
+                      autoFocus
                       value={name}
+                      minLength={3}
+                      maxLength={20}
                       placeholder="Enter name"
                       onChange={(e) => setName(e.target.value)}
                     />
@@ -94,27 +130,28 @@ function CreateBookDialog() {
                     <Field.Label>Description</Field.Label>
 
                     <Input
+                      required
                       type="text"
                       value={description}
+                      minLength={10}
+                      maxLength={20}
                       placeholder="Enter description"
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </Field.Root>
                 </VStack>
-              </form>
-            </Dialog.Body>
+              </Dialog.Body>
 
-            <Dialog.Footer>
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Cancel</Button>
-              </Dialog.ActionTrigger>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </Dialog.ActionTrigger>
 
-              <Dialog.ActionTrigger asChild>
-                <Button disabled={creating} onClick={handleCreateBook}>
+                <Button disabled={creating} type="submit">
                   Create
                 </Button>
-              </Dialog.ActionTrigger>
-            </Dialog.Footer>
+              </Dialog.Footer>
+            </form>
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>

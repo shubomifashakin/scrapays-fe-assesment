@@ -9,6 +9,7 @@ import {
   Input,
   VStack,
 } from "@chakra-ui/react";
+import { toaster } from "../toaster";
 
 interface UpdateBookModalProps {
   book: Book;
@@ -18,14 +19,59 @@ interface UpdateBookModalProps {
 
 function UpdateDialog({ book, isUpdating, onSubmit }: UpdateBookModalProps) {
   const [name, setName] = useState(book.name);
+  const [open, setOpen] = useState(false);
   const [description, setDescription] = useState(book.description);
 
-  function handleConfirm() {
-    onSubmit(book.id, name, description);
+  function displayToast({
+    type,
+    message,
+    title,
+  }: {
+    message: string;
+    title: string;
+    type: "error" | "success";
+  }) {
+    toaster.create({
+      type,
+      title,
+      description: message,
+    });
+  }
+
+  function handleConfirm(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (name.length < 3) {
+      return displayToast({
+        message: "Name must be at least 3 characters long",
+        type: "error",
+        title: "Error",
+      });
+    }
+
+    if (description.length < 10) {
+      return displayToast({
+        message: "Description must be at least 10 characters long",
+        type: "error",
+        title: "Error",
+      });
+    }
+
+    if (name !== book.name || description !== book.description) {
+      onSubmit(book.id, name, description);
+    }
+
+    setOpen(false);
   }
 
   return (
-    <Dialog.Root size="cover" placement="center" motionPreset="slide-in-bottom">
+    <Dialog.Root
+      open={open}
+      onOpenChange={(d) => setOpen(d.open)}
+      size="cover"
+      placement="center"
+      motionPreset="slide-in-bottom"
+    >
       <Dialog.Trigger asChild>
         <Button variant="outline" size="sm">
           Update Book
@@ -45,16 +91,20 @@ function UpdateDialog({ book, isUpdating, onSubmit }: UpdateBookModalProps) {
               </Dialog.CloseTrigger>
             </Dialog.Header>
 
-            <Dialog.Body>
-              <form>
+            <form onSubmit={handleConfirm}>
+              <Dialog.Body>
                 <VStack gap={8}>
                   <Field.Root>
                     <Field.Label>Name</Field.Label>
 
                     <Input
+                      required
                       type="text"
+                      name="name"
                       value={name}
                       placeholder="Enter name"
+                      minLength={3}
+                      maxLength={20}
                       onChange={(e) => setName(e.target.value)}
                     />
                   </Field.Root>
@@ -63,27 +113,29 @@ function UpdateDialog({ book, isUpdating, onSubmit }: UpdateBookModalProps) {
                     <Field.Label>Description</Field.Label>
 
                     <Input
+                      required
                       type="text"
+                      name="description"
                       value={description}
                       placeholder="Enter description"
+                      minLength={10}
+                      maxLength={20}
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </Field.Root>
                 </VStack>
-              </form>
-            </Dialog.Body>
+              </Dialog.Body>
 
-            <Dialog.Footer>
-              <Dialog.ActionTrigger asChild>
-                <Button variant="outline">Cancel</Button>
-              </Dialog.ActionTrigger>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button variant="outline">Cancel</Button>
+                </Dialog.ActionTrigger>
 
-              <Dialog.ActionTrigger asChild>
-                <Button disabled={isUpdating} onClick={handleConfirm}>
+                <Button disabled={isUpdating} type="submit">
                   Update
                 </Button>
-              </Dialog.ActionTrigger>
-            </Dialog.Footer>
+              </Dialog.Footer>
+            </form>
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>
